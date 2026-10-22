@@ -1,0 +1,22 @@
+$ curl -sI 'https://cloud-labs-iota.vercel.app/api/fn?t1=1&t2=1&exam=1' | grep -iE '^(HTTP|server|x-vercel-id|x-vercel-cache)'
+HTTP/2 200 
+server: Vercel
+x-vercel-cache: MISS
+x-vercel-id: iad1::iad1::wpw2n-1792710016272-038049620177
+[код возврата 0, время 188 мс]
+
+Вызовы функции (время полного ответа, с):
+0.157334  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":26.46,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.101023  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":26.57,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.090863  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":26.67,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.084096  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":26.76,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.090864  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":26.87,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.061077  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":26.94,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.090813  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":27.03,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.092979  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":27.14,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.143287  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":27.29,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.181522  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":27.46,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+$ curl -s -w ' HTTP %{http_code}' 'https://cloud-labs-iota.vercel.app/api/fn?t1=150&t2=0&exam=0'
+{"error":"Test 1: \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u043e\u0442 0 \u0434\u043e 100","runtime":{"cold_start":false,"instance_age_s":27.58,"platform":"vercel","region":"iad1"}}
+ HTTP 400[код возврата 0, время 91 мс]
+
