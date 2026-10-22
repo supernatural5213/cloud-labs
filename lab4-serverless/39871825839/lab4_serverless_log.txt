@@ -1,0 +1,22 @@
+Вызовы функции (время полного ответа, с); первый вызов после простоя может быть холодным:
+0.755701  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":true,"instance_age_s":0.03,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.213015  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":0.25,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.204181  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":0.46,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.178089  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":0.65,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.153502  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":0.81,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.137399  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":0.95,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.111181  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":1.08,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.197528  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":1.28,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.158346  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":1.45,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+0.121085  {"average":87.0,"name":"Serverless","passed":true,"result":"PASS","runtime":{"cold_start":false,"instance_age_s":1.58,"platform":"vercel","region":"iad1"},"scores":[85.0,90.0,86.0]}
+$ curl -s -w ' HTTP %{http_code}' 'https://cloud-labs-iota.vercel.app/api/fn?t1=150&t2=0&exam=0'
+{"error":"Test 1: \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u043e\u0442 0 \u0434\u043e 100","runtime":{"cold_start":false,"instance_age_s":1.73,"platform":"vercel","region":"iad1"}}
+ HTTP 400[код возврата 0, время 153 мс]
+
+$ curl -sI 'https://cloud-labs-iota.vercel.app/api/fn?t1=1&t2=1&exam=1' | grep -iE '^(HTTP|server|x-vercel-id|x-vercel-cache)'
+HTTP/2 200 
+server: Vercel
+x-vercel-cache: MISS
+x-vercel-id: cle1::iad1::cpfl8-1792711615813-29207e974898
+[код возврата 0, время 148 мс]
+
