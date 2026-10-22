@@ -1,0 +1,161 @@
+$ docker --version
+Docker version 28.0.4, build b8034c0
+[код возврата 0, время 94 мс]
+
+$ cat lab4/Dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+RUN pip install --no-cache-dir flask==3.1.3
+COPY api/index.py app.py
+ENV HOST=0.0.0.0 PORT=8080
+EXPOSE 8080
+CMD ["python", "app.py"]
+[код возврата 0, время 3 мс]
+
+$ docker build -f lab4/Dockerfile -t cloud-lab4:1.0 .
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 207B done
+#1 DONE 0.0s
+
+#2 [auth] library/python:pull token for registry-1.docker.io
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 0.5s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 4.14kB done
+#5 DONE 0.0s
+
+#6 [1/4] FROM docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2
+#6 resolve docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2 done
+#6 sha256:5c397e4307db7bd392eff1d36de88b04da2a137a4b906b7e0e4657bada560645 0B / 249B 0.1s
+#6 sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2 10.37kB / 10.37kB done
+#6 sha256:e8a38829209aea82774882e5157e1f7c3e8c8393ff53a697b3580896e57f345c 1.75kB / 1.75kB done
+#6 sha256:a33c10a97f11005523814c6eee013986119fe41f3122f444518117536675c8e1 5.66kB / 5.66kB done
+#6 sha256:f2be67225471500c788ce88c597eb5ea8336e912ad1ca4815650e0281afe2034 2.10MB / 29.84MB 0.1s
+#6 sha256:be6443c06d3c9914acdca3ffb368adad23d4f282b55e71e730878ad3e3c3f75c 1.29MB / 1.29MB 0.1s done
+#6 sha256:b524bb3aba7394d85233f3a0a742b8f1b56179e8f61492f73d42a1ff118623b7 12.12MB / 12.12MB 0.1s done
+#6 sha256:5c397e4307db7bd392eff1d36de88b04da2a137a4b906b7e0e4657bada560645 249B / 249B 0.1s done
+#6 sha256:f2be67225471500c788ce88c597eb5ea8336e912ad1ca4815650e0281afe2034 29.84MB / 29.84MB 0.2s done
+#6 extracting sha256:f2be67225471500c788ce88c597eb5ea8336e912ad1ca4815650e0281afe2034
+#6 extracting sha256:f2be67225471500c788ce88c597eb5ea8336e912ad1ca4815650e0281afe2034 0.9s done
+#6 extracting sha256:be6443c06d3c9914acdca3ffb368adad23d4f282b55e71e730878ad3e3c3f75c
+#6 extracting sha256:be6443c06d3c9914acdca3ffb368adad23d4f282b55e71e730878ad3e3c3f75c 0.1s done
+#6 extracting sha256:b524bb3aba7394d85233f3a0a742b8f1b56179e8f61492f73d42a1ff118623b7
+#6 extracting sha256:b524bb3aba7394d85233f3a0a742b8f1b56179e8f61492f73d42a1ff118623b7 0.5s done
+#6 extracting sha256:5c397e4307db7bd392eff1d36de88b04da2a137a4b906b7e0e4657bada560645
+#6 extracting sha256:5c397e4307db7bd392eff1d36de88b04da2a137a4b906b7e0e4657bada560645 done
+#6 DONE 4.4s
+
+#7 [2/4] WORKDIR /app
+#7 DONE 0.0s
+
+#8 [3/4] RUN pip install --no-cache-dir flask==3.1.3
+#8 1.491 Collecting flask==3.1.3
+#8 1.511   Downloading flask-3.1.3-py3-none-any.whl.metadata (3.2 kB)
+#8 1.519 Collecting blinker>=1.9.0 (from flask==3.1.3)
+#8 1.523   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+#8 1.535 Collecting click>=8.1.3 (from flask==3.1.3)
+#8 1.539   Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+#8 1.546 Collecting itsdangerous>=2.2.0 (from flask==3.1.3)
+#8 1.549   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+#8 1.559 Collecting jinja2>=3.1.2 (from flask==3.1.3)
+#8 1.563   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+#8 1.606 Collecting markupsafe>=2.1.1 (from flask==3.1.3)
+#8 1.609   Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+#8 1.625 Collecting werkzeug>=3.1.0 (from flask==3.1.3)
+#8 1.629   Downloading werkzeug-3.1.9-py3-none-any.whl.metadata (4.1 kB)
+#8 1.638 Downloading flask-3.1.3-py3-none-any.whl (103 kB)
+#8 1.644 Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+#8 1.647 Downloading click-8.5.0-py3-none-any.whl (125 kB)
+#8 1.652 Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+#8 1.656 Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+#8 1.660 Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+#8 1.663 Downloading werkzeug-3.1.9-py3-none-any.whl (228 kB)
+#8 1.680 Installing collected packages: markupsafe, itsdangerous, click, blinker, werkzeug, jinja2, flask
+#8 2.033 Successfully installed blinker-1.9.0 click-8.5.0 flask-3.1.3 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.4 werkzeug-3.1.9
+#8 2.034 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#8 2.091 
+#8 2.091 [notice] A new release of pip is available: 25.0.1 -> 26.2.2
+#8 2.091 [notice] To update, run: pip install --upgrade pip
+#8 DONE 2.2s
+
+#9 [4/4] COPY api/index.py app.py
+#9 DONE 0.0s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 0.4s done
+#10 writing image sha256:5bdc66a66d40cbcf9305aa28ad39ca794c4497ea0f97f8ed22d502e6742a2d96 done
+#10 naming to docker.io/library/cloud-lab4:1.0 done
+#10 DONE 0.4s
+[код возврата 0, время 7871 мс]
+
+$ docker images cloud-lab4
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+cloud-lab4   1.0       5bdc66a66d40   1 second ago   132MB
+[код возврата 0, время 19 мс]
+
+$ docker run -d --name cloud-lab4 -p 8080:8080 cloud-lab4:1.0
+eee68e33168c0bdff9a95d11c41a5c6b5cb532786b328b1746107b229d7c5611
+[код возврата 0, время 327 мс]
+
+Время от docker run до первого ответа: 231 мс
+$ docker ps
+CONTAINER ID   IMAGE            COMMAND           CREATED                  STATUS                  PORTS                                         NAMES
+eee68e33168c   cloud-lab4:1.0   "python app.py"   Less than a second ago   Up Less than a second   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   cloud-lab4
+[код возврата 0, время 16 мс]
+
+$ docker logs cloud-lab4
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://172.17.0.2:8080
+[33mPress CTRL+C to quit[0m
+172.17.0.1 - - [22/Oct/2026 22:47:15] "GET /health HTTP/1.1" 200 -
+[код возврата 0, время 16 мс]
+
+$ curl -s 'http://localhost:8080/api/calculate?name=Container&t1=85&t2=90&exam=86'
+{"average":87.0,"name":"Container","passed":true,"result":"PASS","scores":[85.0,90.0,86.0]}
+[код возврата 0, время 10 мс]
+
+$ docker stats --no-stream cloud-lab4
+CONTAINER ID   NAME         CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O   PIDS
+eee68e33168c   cloud-lab4   0.01%     22.12MiB / 15.61GiB   0.14%     1.82kB / 1.35kB   0B / 0B     1
+[код возврата 0, время 1522 мс]
+
+$ docker inspect -f 'Image={{.Image}} Started={{.State.StartedAt}} IP={{.NetworkSettings.IPAddress}}' cloud-lab4
+Image=sha256:5bdc66a66d40cbcf9305aa28ad39ca794c4497ea0f97f8ed22d502e6742a2d96 Started=2026-10-22T22:47:15.374971624Z IP=172.17.0.2
+[код возврата 0, время 16 мс]
+
+Перезапуск контейнера до ответа: 226 мс
+$ docker run -d --name cloud-lab4-2 -p 8082:8080 cloud-lab4:1.0
+152b73e8429b9bf45dea710db8b44eb29fbd8189bc3da90a7303e5aa226beb33
+[код возврата 0, время 140 мс]
+
+Второй экземпляр из того же образа, до ответа: 227 мс
+$ docker ps
+CONTAINER ID   IMAGE            COMMAND           CREATED          STATUS                  PORTS                                         NAMES
+152b73e8429b   cloud-lab4:1.0   "python app.py"   1 second ago     Up Less than a second   0.0.0.0:8082->8080/tcp, [::]:8082->8080/tcp   cloud-lab4-2
+eee68e33168c   cloud-lab4:1.0   "python app.py"   13 seconds ago   Up Less than a second   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   cloud-lab4
+[код возврата 0, время 16 мс]
+
+$ docker stop cloud-lab4 cloud-lab4-2
+cloud-lab4
+cloud-lab4-2
+[код возврата 0, время 10178 мс]
+
+$ docker rm cloud-lab4 cloud-lab4-2
+cloud-lab4
+cloud-lab4-2
+[код возврата 0, время 22 мс]
+
