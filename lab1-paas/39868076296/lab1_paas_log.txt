@@ -1,0 +1,32 @@
+$ curl -sI https://cloud-labs-iota.vercel.app/ | grep -iE '^(HTTP|server|x-vercel-id|content-type)'
+HTTP/2 200 
+content-type: text/html; charset=utf-8
+server: Vercel
+x-vercel-id: sfo1::iad1::jzx8m-1792709904177-cd14bc35ce2b
+[код возврата 0, время 241 мс]
+
+$ curl -s 'https://cloud-labs-iota.vercel.app/api/calculate?name=Ivan&t1=85&t2=90&exam=86'
+{"average":87.0,"name":"Ivan","passed":true,"result":"PASS","scores":[85.0,90.0,86.0]}
+[код возврата 0, время 122 мс]
+
+$ curl -s 'https://cloud-labs-iota.vercel.app/api/calculate?name=Anna&t1=40&t2=50&exam=45'
+{"average":45.0,"name":"Anna","passed":false,"result":"FAIL","scores":[40.0,50.0,45.0]}
+[код возврата 0, время 144 мс]
+
+$ curl -s -w ' HTTP %{http_code}' 'https://cloud-labs-iota.vercel.app/api/calculate?name=X&t1=200&t2=0&exam=0'
+{"error":"Test 1: \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u043e\u0442 0 \u0434\u043e 100"}
+ HTTP 400[код возврата 0, время 123 мс]
+
+$ curl -s https://cloud-labs-iota.vercel.app/health
+{"status":"ok"}
+[код возврата 0, время 124 мс]
+
+$ python scripts/paas_check.py https://cloud-labs-iota.vercel.app
+Student: Сабитхан Жасулан
+Average: 87.0
+Result: PASS
+Student: Тест Студент
+Average: 41.7
+Result: FAIL
+[код возврата 0, время 1823 мс]
+
