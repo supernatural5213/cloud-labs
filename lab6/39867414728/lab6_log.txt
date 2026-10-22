@@ -1,0 +1,246 @@
+$ minikube version
+minikube version: v1.39.0
+commit: 7a9f6a841470a207de8cf4bafcccee0969d8ba10
+[код возврата 0, время 34 мс]
+
+$ kubectl version --client
+Client Version: v1.37.1
+Kustomize Version: v5.8.1
+[код возврата 0, время 83 мс]
+
+$ kubectl get nodes -o wide
+NAME       STATUS   ROLES           AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION              CONTAINER-RUNTIME
+minikube   Ready    control-plane   40s   v1.37.0   192.168.49.2   <none>        Debian GNU/Linux 12 (bookworm)   6.17.0-1022-azure (amd64)   containerd://2.3.4
+[код возврата 0, время 582 мс]
+
+$ kubectl cluster-info
+Kubernetes control plane is running at https://192.168.49.2:8443
+CoreDNS is running at https://192.168.49.2:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+[код возврата 0, время 122 мс]
+
+$ minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+[код возврата 0, время 261 мс]
+
+$ cat lab6/k8s/nginx-deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-lab6
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+[код возврата 0, время 3 мс]
+
+$ kubectl apply -f lab6/k8s/nginx-deploy.yaml
+deployment.apps/nginx-lab6 created
+[код возврата 0, время 244 мс]
+
+$ kubectl rollout status deployment/nginx-lab6 --timeout=180s
+Waiting for deployment "nginx-lab6" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "nginx-lab6" rollout to finish: 1 of 2 updated replicas are available...
+deployment "nginx-lab6" successfully rolled out
+[код возврата 0, время 2496 мс]
+
+$ kubectl get deployments
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-lab6   2/2     2            2           3s
+[код возврата 0, время 93 мс]
+
+$ kubectl get pods -o wide
+NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+nginx-lab6-6946987795-qd4jl   1/1     Running   0          3s    10.244.0.4   minikube   <none>           <none>
+nginx-lab6-6946987795-tljsm   1/1     Running   0          3s    10.244.0.5   minikube   <none>           <none>
+[код возврата 0, время 96 мс]
+
+$ kubectl describe deployment nginx-lab6
+Name:                   nginx-lab6
+Namespace:              default
+CreationTimestamp:      Thu, 22 Oct 2026 22:48:40 +0000
+Labels:                 <none>
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=nginx
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx
+  Containers:
+   nginx:
+    Image:         nginx:1.25
+    Port:          80/TCP
+    Host Port:     0/TCP
+    Environment:   <none>
+    Mounts:        <none>
+  Volumes:         <none>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-lab6-6946987795 (2/2 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  5s    deployment-controller  Scaled up replica set nginx-lab6-6946987795 from 0 to 2
+[код возврата 0, время 1953 мс]
+
+$ cat lab6/k8s/nginx-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080
+[код возврата 0, время 3 мс]
+
+$ kubectl apply -f lab6/k8s/nginx-svc.yaml
+service/nginx-svc created
+[код возврата 0, время 215 мс]
+
+$ kubectl get svc
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP        44s
+nginx-svc    NodePort    10.101.167.163   <none>        80:30080/TCP   0s
+[код возврата 0, время 97 мс]
+
+minikube service nginx-svc --url -> http://192.168.49.2:30080
+Время до первого ответа: 655 мс
+$ curl -s http://192.168.49.2:30080 | head -n 15
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+[код возврата 0, время 8 мс]
+
+$ kubectl scale deployment nginx-lab6 --replicas=3
+deployment.apps/nginx-lab6 scaled
+[код возврата 0, время 96 мс]
+
+$ kubectl rollout status deployment/nginx-lab6 --timeout=120s
+Waiting for deployment "nginx-lab6" rollout to finish: 2 of 3 updated replicas are available...
+deployment "nginx-lab6" successfully rolled out
+[код возврата 0, время 500 мс]
+
+$ kubectl get pods -o wide
+NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+nginx-lab6-6946987795-5zvcv   1/1     Running   0          1s    10.244.0.6   minikube   <none>           <none>
+nginx-lab6-6946987795-qd4jl   1/1     Running   0          8s    10.244.0.4   minikube   <none>           <none>
+nginx-lab6-6946987795-tljsm   1/1     Running   0          8s    10.244.0.5   minikube   <none>           <none>
+[код возврата 0, время 104 мс]
+
+$ kubectl delete pod nginx-lab6-6946987795-5zvcv
+pod "nginx-lab6-6946987795-5zvcv" deleted from default namespace
+[код возврата 0, время 1654 мс]
+
+$ kubectl get pods -o wide
+NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+nginx-lab6-6946987795-lmjtk   1/1     Running   0          7s    10.244.0.7   minikube   <none>           <none>
+nginx-lab6-6946987795-qd4jl   1/1     Running   0          15s   10.244.0.4   minikube   <none>           <none>
+nginx-lab6-6946987795-tljsm   1/1     Running   0          15s   10.244.0.5   minikube   <none>           <none>
+[код возврата 0, время 92 мс]
+
+$ kubectl get deployment nginx-lab6
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-lab6   3/3     3            3           15s
+[код возврата 0, время 100 мс]
+
+$ kubectl get events --sort-by=.lastTimestamp | tail -n 15
+13s         Normal   Pulled                    pod/nginx-lab6-6946987795-tljsm    Successfully pulled image "nginx:1.25" in 122ms (1.971s including waiting). Image size: 71005258 bytes.
+13s         Normal   Pulled                    pod/nginx-lab6-6946987795-qd4jl    Successfully pulled image "nginx:1.25" in 1.858s (1.858s including waiting). Image size: 71005258 bytes.
+13s         Normal   Created                   pod/nginx-lab6-6946987795-qd4jl    Container created
+8s          Normal   Scheduled                 pod/nginx-lab6-6946987795-5zvcv    Successfully assigned default/nginx-lab6-6946987795-5zvcv to minikube
+8s          Normal   SuccessfulCreate          replicaset/nginx-lab6-6946987795   Created pod: nginx-lab6-6946987795-5zvcv
+8s          Normal   ScalingReplicaSet         deployment/nginx-lab6              Scaled up replica set nginx-lab6-6946987795 from 2 to 3
+7s          Normal   Scheduled                 pod/nginx-lab6-6946987795-lmjtk    Successfully assigned default/nginx-lab6-6946987795-lmjtk to minikube
+7s          Normal   Started                   pod/nginx-lab6-6946987795-5zvcv    Container started
+7s          Normal   Created                   pod/nginx-lab6-6946987795-5zvcv    Container created
+7s          Normal   SuccessfulCreate          replicaset/nginx-lab6-6946987795   Created pod: nginx-lab6-6946987795-lmjtk
+7s          Normal   Pulled                    pod/nginx-lab6-6946987795-5zvcv    Container image "nginx:1.25" already present on machine and can be accessed by the pod
+6s          Normal   Started                   pod/nginx-lab6-6946987795-lmjtk    Container started
+6s          Normal   Created                   pod/nginx-lab6-6946987795-lmjtk    Container created
+6s          Normal   Pulled                    pod/nginx-lab6-6946987795-lmjtk    Container image "nginx:1.25" already present on machine and can be accessed by the pod
+6s          Normal   Killing                   pod/nginx-lab6-6946987795-5zvcv    Stopping container nginx
+[код возврата 0, время 105 мс]
+
+$ kubectl scale deployment nginx-lab6 --replicas=1
+deployment.apps/nginx-lab6 scaled
+[код возврата 0, время 94 мс]
+
+$ kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+nginx-lab6-6946987795-tljsm   1/1     Running   0          20s
+[код возврата 0, время 92 мс]
+
+$ kubectl logs nginx-lab6-6946987795-tljsm | tail -n 10
+2026/10/22 22:48:42 [notice] 1#1: OS: Linux 6.17.0-1022-azure
+2026/10/22 22:48:42 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2026/10/22 22:48:42 [notice] 1#1: start worker processes
+2026/10/22 22:48:42 [notice] 1#1: start worker process 29
+2026/10/22 22:48:42 [notice] 1#1: start worker process 30
+2026/10/22 22:48:42 [notice] 1#1: start worker process 31
+2026/10/22 22:48:42 [notice] 1#1: start worker process 32
+10.244.0.1 - - [22/Oct/2026:22:48:46 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/8.5.0" "-"
+10.244.0.1 - - [22/Oct/2026:22:48:46 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/8.5.0" "-"
+10.244.0.1 - - [22/Oct/2026:22:48:47 +0000] "GET / HTTP/1.1" 200 615 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36" "-"
+[код возврата 0, время 123 мс]
+
+$ kubectl get endpoints nginx-svc
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME        ENDPOINTS       AGE
+nginx-svc   10.244.0.5:80   16s
+[код возврата 0, время 92 мс]
+
+$ kubectl delete -f lab6/k8s/
+deployment.apps "nginx-lab6" deleted from default namespace
+service "nginx-svc" deleted from default namespace
+[код возврата 0, время 114 мс]
+
+$ minikube delete
+* Deleting "minikube" in docker ...
+* Deleting container "minikube" ...
+* Removing /home/runner/.minikube/machines/minikube ...
+* Removed all traces of the "minikube" cluster.
+[код возврата 0, время 7503 мс]
+
