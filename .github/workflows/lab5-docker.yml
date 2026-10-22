@@ -39,7 +39,7 @@ jobs:
         run: |
           source scripts/log.sh
           run "cat lab5/my-site/Dockerfile"
-          run "cd lab5/my-site && docker build -t my-web:v1 ."
+          run "cd lab5/my-site && docker build --progress=plain -t my-web:v1 ."
           run "docker run -d -p 8081:80 --name my-web my-web:v1"
           echo "Время до первого ответа http://localhost:8081: $(wait_http http://localhost:8081) мс" | tee -a $LOG
           run "curl -s http://localhost:8081"

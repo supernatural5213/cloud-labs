@@ -62,7 +62,7 @@ jobs:
           source scripts/log.sh
           run "docker --version"
           run "cat lab4/Dockerfile"
-          run "docker build -f lab4/Dockerfile -t cloud-lab4:1.0 ."
+          run "docker build --progress=plain -f lab4/Dockerfile -t cloud-lab4:1.0 ."
           run "docker images cloud-lab4"
           T0=$(date +%s%N)
           run "docker run -d --name cloud-lab4 -p 8080:8080 cloud-lab4:1.0"
