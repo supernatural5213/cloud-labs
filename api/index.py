@@ -1,7 +1,12 @@
 """Student Grade Calculator: PaaS-приложение (Flask) для ЛР1 по облачным ИС."""
+import os
+import time
+
 from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
+STARTED = time.time()     # момент загрузки модуля = старт экземпляра функции
+COLD = {"first": True}
 PASS_MARK = 50
 
 PAGE = """<!doctype html>
@@ -76,6 +81,21 @@ def api_calculate():
         return jsonify(calculate(a.get("name"), a.get("t1"), a.get("t2"), a.get("exam")))
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/fn")
+def api_fn():
+    """ЛР4: тот же расчёт как serverless-вызов; показывает холодный старт экземпляра."""
+    a = request.args
+    try:
+        body, status = calculate(a.get("name", "fn"), a.get("t1"), a.get("t2"), a.get("exam")), 200
+    except ValueError as e:
+        body, status = {"error": str(e)}, 400
+    body["runtime"] = {"cold_start": COLD["first"], "instance_age_s": round(time.time() - STARTED, 2),
+                       "region": os.environ.get("VERCEL_REGION", "local"),
+                       "platform": "vercel" if os.environ.get("VERCEL") else "local"}
+    COLD["first"] = False
+    return jsonify(body), status
 
 
 @app.route("/health")

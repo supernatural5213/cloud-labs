@@ -1,6 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/grade_fn", "destination": "/api/grade_fn" },
-    { "source": "/(.*)", "destination": "/api/index" }
-  ]
-}
