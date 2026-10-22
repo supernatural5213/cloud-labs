@@ -83,3 +83,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash scripts/save_reports.sh lab4-container lab4_container_log.txt
+
+  serverless:
+    name: Serverless (Vercel Functions)
+    runs-on: ubuntu-latest
+    env:
+      LOG: lab4_serverless_log.txt
+      FN: https://cloud-labs-iota.vercel.app/api/fn
+    steps:
+      - uses: actions/checkout@v4
+      - name: Call function, measure cold and warm latency
+        run: |
+          source scripts/log.sh
+          run "curl -sI '$FN?t1=1&t2=1&exam=1' | grep -iE '^(HTTP|server|x-vercel-id|x-vercel-cache)'"
+          echo "Вызовы функции (время полного ответа, с):" | tee -a $LOG
+          for i in $(seq 1 10); do
+            curl -s -o resp.json -w "%{time_total}" "$FN?name=Serverless&t1=85&t2=90&exam=86" | tee -a $LOG
+            echo "  $(cat resp.json)" | tee -a $LOG
+          done
+          run "curl -s -w ' HTTP %{http_code}' '$FN?t1=150&t2=0&exam=0'"
+      - name: Save
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/save_reports.sh lab4-serverless lab4_serverless_log.txt

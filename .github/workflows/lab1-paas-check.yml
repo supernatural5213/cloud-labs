@@ -1,0 +1,36 @@
+name: Lab1 PaaS check (Vercel)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ "scripts/paas_check.py", ".github/workflows/lab1-paas-check.yml" ]
+
+permissions:
+  contents: write
+
+env:
+  APP_URL: https://cloud-labs-iota.vercel.app
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      LOG: lab1_paas_log.txt
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install playwright && python -m playwright install --with-deps chromium > /dev/null
+      - name: Check deployed app
+        run: |
+          source scripts/log.sh
+          run "curl -sI $APP_URL/ | grep -iE '^(HTTP|server|x-vercel-id|content-type)'"
+          run "curl -s '$APP_URL/api/calculate?name=Ivan&t1=85&t2=90&exam=86'"
+          run "curl -s '$APP_URL/api/calculate?name=Anna&t1=40&t2=50&exam=45'"
+          run "curl -s -w ' HTTP %{http_code}' '$APP_URL/api/calculate?name=X&t1=200&t2=0&exam=0'"
+          run "curl -s $APP_URL/health"
+          run "python scripts/paas_check.py $APP_URL"
+      - name: Save
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/save_reports.sh lab1-paas lab1_paas_log.txt paas_form.png paas_result.png paas_fail.png
