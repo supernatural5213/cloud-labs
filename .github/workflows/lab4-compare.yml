@@ -1,0 +1,85 @@
+name: Lab4 VM vs Container vs Serverless
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "lab4/**", "api/**", ".github/workflows/lab4-compare.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  vm:
+    name: VM (GitHub-hosted runner, Azure VM)
+    runs-on: ubuntu-latest
+    env:
+      LOG: lab4_vm_log.txt
+    steps:
+      - uses: actions/checkout@v4
+      - name: VM parameters
+        run: |
+          source scripts/log.sh
+          run "grep -E '^(PRETTY_NAME|VERSION_ID)' /etc/os-release"
+          run "uname -r"
+          run "systemd-detect-virt"
+          run "nproc"
+          run "free -m"
+          run "df -h / | tail -1"
+          run "ip -4 -br addr"
+      - name: Deploy app on the VM OS (venv + systemd)
+        run: |
+          source scripts/log.sh
+          T0=$(date +%s%N)
+          run "sudo mkdir -p /opt/lab4 && sudo cp api/index.py /opt/lab4/app.py"
+          run "sudo python3 -m venv /opt/lab4/venv"
+          run "sudo /opt/lab4/venv/bin/pip install -q flask==3.1.3"
+          printf '[Unit]\nDescription=Lab4 grade calculator\nAfter=network.target\n[Service]\nEnvironment=HOST=0.0.0.0 PORT=8080\nExecStart=/opt/lab4/venv/bin/python /opt/lab4/app.py\nRestart=always\nUser=nobody\n[Install]\nWantedBy=multi-user.target\n' | sudo tee /etc/systemd/system/lab4.service
+          run "cat /etc/systemd/system/lab4.service"
+          run "sudo systemctl daemon-reload && sudo systemctl start lab4"
+          echo "Время от старта сервиса до первого ответа: $(wait_http http://localhost:8080/health) мс" | tee -a $LOG
+          echo "ИТОГО подготовка и запуск на VM: $(( ($(date +%s%N) - T0) / 1000000 )) мс" | tee -a $LOG
+          run "curl -s 'http://localhost:8080/api/calculate?name=VM&t1=85&t2=90&exam=86'"
+          run "systemctl status lab4 --no-pager | head -n 12"
+          run "ps -o pid,rss,vsz,cmd -C python"
+          T1=$(date +%s%N); sudo systemctl restart lab4; echo "Перезапуск сервиса до ответа: $(wait_http http://localhost:8080/health) мс" | tee -a $LOG
+          run "sudo systemctl stop lab4"
+      - name: Save
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/save_reports.sh lab4-vm lab4_vm_log.txt
+
+  container:
+    name: Container (Docker)
+    runs-on: ubuntu-latest
+    env:
+      LOG: lab4_container_log.txt
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run container
+        run: |
+          source scripts/log.sh
+          run "docker --version"
+          run "cat lab4/Dockerfile"
+          run "docker build -f lab4/Dockerfile -t cloud-lab4:1.0 ."
+          run "docker images cloud-lab4"
+          T0=$(date +%s%N)
+          run "docker run -d --name cloud-lab4 -p 8080:8080 cloud-lab4:1.0"
+          echo "Время от docker run до первого ответа: $(wait_http http://localhost:8080/health) мс" | tee -a $LOG
+          run "docker ps"
+          run "docker logs cloud-lab4"
+          run "curl -s 'http://localhost:8080/api/calculate?name=Container&t1=85&t2=90&exam=86'"
+          run "docker stats --no-stream cloud-lab4"
+          run "docker inspect -f 'Image={{.Image}} Started={{.State.StartedAt}} IP={{.NetworkSettings.IPAddress}}' cloud-lab4"
+          docker restart cloud-lab4 > /dev/null; echo "Перезапуск контейнера до ответа: $(wait_http http://localhost:8080/health) мс" | tee -a $LOG
+          run "docker run -d --name cloud-lab4-2 -p 8082:8080 cloud-lab4:1.0"
+          echo "Второй экземпляр из того же образа, до ответа: $(wait_http http://localhost:8082/health) мс" | tee -a $LOG
+          run "docker ps"
+          run "docker stop cloud-lab4 cloud-lab4-2"
+          run "docker rm cloud-lab4 cloud-lab4-2"
+      - name: Save
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/save_reports.sh lab4-container lab4_container_log.txt

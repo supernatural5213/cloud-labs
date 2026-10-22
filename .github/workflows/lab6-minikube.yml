@@ -1,0 +1,90 @@
+name: Lab6 Minikube
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "lab6/**", ".github/workflows/lab6-minikube.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  k8s:
+    runs-on: ubuntu-latest
+    env:
+      LOG: lab6_log.txt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install screenshot tool
+        run: pip install playwright && python -m playwright install --with-deps chromium > /dev/null
+
+      - name: Step 1 - start Minikube
+        uses: medyagh/setup-minikube@latest
+        with:
+          driver: docker
+          cpus: 2
+          memory: 4000m
+
+      - name: Step 1 - check cluster
+        run: |
+          source scripts/log.sh
+          run "minikube version"
+          run "kubectl version --client"
+          run "kubectl get nodes -o wide"
+          run "kubectl cluster-info"
+          run "minikube status"
+
+      - name: Step 2 - Deployment
+        run: |
+          source scripts/log.sh
+          run "cat lab6/k8s/nginx-deploy.yaml"
+          run "kubectl apply -f lab6/k8s/nginx-deploy.yaml"
+          run "kubectl rollout status deployment/nginx-lab6 --timeout=180s"
+          run "kubectl get deployments"
+          run "kubectl get pods -o wide"
+          run "kubectl describe deployment nginx-lab6"
+
+      - name: Step 3 - Service
+        run: |
+          source scripts/log.sh
+          run "cat lab6/k8s/nginx-svc.yaml"
+          run "kubectl apply -f lab6/k8s/nginx-svc.yaml"
+          run "kubectl get svc"
+          URL=$(minikube service nginx-svc --url)
+          echo "minikube service nginx-svc --url -> $URL" | tee -a $LOG
+          echo "Время до первого ответа: $(wait_http $URL) мс" | tee -a $LOG
+          run "curl -s $URL | head -n 15"
+          python scripts/shot.py $URL nginx_k8s.png
+
+      - name: Step 4 - scaling and self-healing
+        run: |
+          source scripts/log.sh
+          run "kubectl scale deployment nginx-lab6 --replicas=3"
+          run "kubectl rollout status deployment/nginx-lab6 --timeout=120s"
+          run "kubectl get pods -o wide"
+          POD=$(kubectl get pods -l app=nginx -o jsonpath='{.items[0].metadata.name}')
+          run "kubectl delete pod $POD"
+          sleep 5
+          run "kubectl get pods -o wide"
+          run "kubectl get deployment nginx-lab6"
+          run "kubectl get events --sort-by=.lastTimestamp | tail -n 15"
+          run "kubectl scale deployment nginx-lab6 --replicas=1"
+          sleep 5
+          run "kubectl get pods"
+
+      - name: Step 5 - logs and cleanup
+        run: |
+          source scripts/log.sh
+          POD=$(kubectl get pods -l app=nginx -o jsonpath='{.items[0].metadata.name}')
+          run "kubectl logs $POD | tail -n 10"
+          run "kubectl get endpoints nginx-svc"
+          run "kubectl delete -f lab6/k8s/"
+          run "minikube delete"
+
+      - name: Save reports to ci-reports branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/save_reports.sh lab6 lab6_log.txt nginx_k8s.png

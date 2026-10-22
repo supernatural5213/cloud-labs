@@ -1,0 +1,64 @@
+name: Lab5 Docker
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "lab5/**", ".github/workflows/lab5-docker.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      LOG: lab5_log.txt
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install screenshot tool
+        run: pip install playwright && python -m playwright install --with-deps chromium > /dev/null
+
+      - name: Step 1 - Docker installed
+        run: |
+          source scripts/log.sh
+          run "docker --version"
+          run "docker run hello-world"
+
+      - name: Step 2 - ready nginx image
+        run: |
+          source scripts/log.sh
+          run "docker pull nginx"
+          run "docker run -d -p 8080:80 --name my-nginx nginx"
+          echo "Время до первого ответа http://localhost:8080: $(wait_http http://localhost:8080) мс" | tee -a $LOG
+          run "curl -s http://localhost:8080 | head -n 15"
+          python scripts/shot.py http://localhost:8080 nginx_8080.png
+
+      - name: Step 3-4 - own image
+        run: |
+          source scripts/log.sh
+          run "cat lab5/my-site/Dockerfile"
+          run "cd lab5/my-site && docker build -t my-web:v1 ."
+          run "docker run -d -p 8081:80 --name my-web my-web:v1"
+          echo "Время до первого ответа http://localhost:8081: $(wait_http http://localhost:8081) мс" | tee -a $LOG
+          run "curl -s http://localhost:8081"
+          python scripts/shot.py http://localhost:8081 my_web_8081.png
+
+      - name: Step 5 - management and cleanup
+        run: |
+          source scripts/log.sh
+          run "docker ps"
+          run "docker images"
+          run "docker logs my-web"
+          run "docker stop my-web && docker rm my-web"
+          run "docker stop my-nginx && docker rm my-nginx"
+          run "docker ps -a"
+          run "docker rmi my-web:v1"
+          run "docker images"
+
+      - name: Save reports to ci-reports branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/save_reports.sh lab5 lab5_log.txt nginx_8080.png my_web_8081.png
